@@ -25,3 +25,12 @@ app.include_router(disk_router.router)
 @app.get("/")
 def root():
     return {"message": "OS Resource Simulator API is running"}
+
+@app.get("/api/health")
+def health():
+    return {"status": "online"}
+
+@app.get("/api/ml/metrics")
+def ml_metrics_alias():
+    from app.algorithms.cpu_scheduling import get_ml_validation_metrics
+    return get_ml_validation_metrics()

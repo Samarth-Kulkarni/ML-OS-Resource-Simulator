@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Cpu, HardDrive, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Cpu, HardDrive, ShieldAlert, Terminal } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab }) {
   const navItems = [
@@ -10,37 +10,41 @@ export default function Navbar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <nav className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div className="flex items-center gap-3">
-        <div className="bg-blue-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/30">
-          <Cpu className="w-6 h-6" />
+    <header className="bg-[#161616] border-b border-[#393939] sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-stretch md:items-center min-h-[48px]">
+        {/* Brand Header */}
+        <div className="flex items-center gap-3 py-2.5 md:py-0 border-b md:border-b-0 border-[#262626]">
+          <div className="bg-[#0f62fe] p-1.5 text-white flex items-center justify-center">
+            <Cpu className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="font-semibold text-white tracking-tight text-sm">ML Augmented OS Resource Simulator</h1>
+            <p className="text-[11px] text-[#8d8d8d]">Process, Deadlock & Disk Management Engine</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold tracking-wide text-white">OS Resource Simulator</h1>
-          <p className="text-xs text-slate-400">Process, Deadlock & Disk Management Engine</p>
-        </div>
-      </div>
 
-      <div className="flex gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-700">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+        {/* Carbon Shell Navigation Tabs */}
+        <nav className="flex overflow-x-auto no-scrollbar items-center">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center gap-2 px-4 h-12 text-xs uppercase tracking-wider font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  isActive
+                    ? 'border-[#0f62fe] bg-[#262626] text-white'
+                    : 'border-transparent text-[#c6c6c6] hover:bg-[#262626]/60 hover:text-white'
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#0f62fe]' : 'text-[#8d8d8d]'}`} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }
