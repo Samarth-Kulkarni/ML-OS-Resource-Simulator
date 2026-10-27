@@ -7,10 +7,10 @@ export default function DashboardPage({
   cpuProcesses, 
   cpuResult, 
   cpuAlgorithm, 
-  deadlockResult, 
+  deadlockResult,
   diskResult,
   diskHead,
-  diskAlgorithm 
+  diskAlgorithm
 }) {
   const [backendOnline, setBackendOnline] = useState(null);
 

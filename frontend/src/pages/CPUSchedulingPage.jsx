@@ -26,7 +26,7 @@ export default function CPUSchedulingPage({ processes, setProcesses, result, set
     const nextNum = processes.length + 1;
     setProcesses([
       ...processes,
-      { pid: `P${nextNum}`, arrival_time: 0, burst_time: 4, priority: 1 },
+      { pid: `P${nextNum}`, arrival_time: 0, burst_time: 4, priority: 1, process_type: 'batch', requested_memory_mb: 512, static_priority: 5 },
     ]);
   };
 
@@ -36,17 +36,21 @@ export default function CPUSchedulingPage({ processes, setProcesses, result, set
 
   const handleChange = (index, field, value) => {
     const updated = [...processes];
-    updated[index][field] = field === 'pid' ? value : Number(value);
+    if (field === 'pid' || field === 'process_type') {
+      updated[index][field] = value;
+    } else {
+      updated[index][field] = Number(value);
+    }
     setProcesses(updated);
   };
 
   const loadDefaultWorkload = () => {
     setProcesses([
-      { pid: 'P1', arrival_time: 0, burst_time: 6, priority: 1 },
-      { pid: 'P2', arrival_time: 1, burst_time: 4, priority: 2 },
-      { pid: 'P3', arrival_time: 2, burst_time: 8, priority: 1 },
-      { pid: 'P4', arrival_time: 3, burst_time: 3, priority: 3 },
-      { pid: 'P5', arrival_time: 4, burst_time: 5, priority: 2 },
+      { pid: 'P1', arrival_time: 0, burst_time: 6, priority: 1, process_type: 'bursty', requested_memory_mb: 256, static_priority: 5 },
+      { pid: 'P2', arrival_time: 1, burst_time: 4, priority: 2, process_type: 'interactive', requested_memory_mb: 128, static_priority: 2 },
+      { pid: 'P3', arrival_time: 2, burst_time: 8, priority: 1, process_type: 'batch', requested_memory_mb: 1024, static_priority: 10 },
+      { pid: 'P4', arrival_time: 3, burst_time: 3, priority: 3, process_type: 'interactive', requested_memory_mb: 64, static_priority: 1 },
+      { pid: 'P5', arrival_time: 4, burst_time: 5, priority: 2, process_type: 'bursty', requested_memory_mb: 512, static_priority: 7 },
     ]);
   };
 
@@ -272,54 +276,95 @@ export default function CPUSchedulingPage({ processes, setProcesses, result, set
           <table className="w-full text-left text-xs">
             <thead className="bg-[#161616] text-[#c6c6c6] uppercase font-mono tracking-wider border-b border-[#393939]">
               <tr>
-                <th className="px-4 py-2.5 font-semibold w-32">Process ID</th>
-                <th className="px-4 py-2.5 font-semibold w-40">Arrival Time</th>
-                <th className="px-4 py-2.5 font-semibold w-40">Burst Time</th>
-                {algorithm === 'PRIORITY' && <th className="px-4 py-2.5 font-semibold w-36">Priority</th>}
-                <th className="px-4 py-2.5 font-semibold text-right w-24">Actions</th>
+                <th className="px-3 py-2.5 font-semibold">Process ID</th>
+                <th className="px-3 py-2.5 font-semibold">Arrival Time</th>
+                <th className="px-3 py-2.5 font-semibold">Burst Time</th>
+                {algorithm === 'PRIORITY' && <th className="px-3 py-2.5 font-semibold">Priority</th>}
+                {(algorithm === 'ADAPTIVE_ROUTER' || algorithm === 'PREDICTED_SJF') && (
+                  <>
+                    <th className="px-3 py-2.5 font-semibold text-[#78a9ff]">Process Type</th>
+                    <th className="px-3 py-2.5 font-semibold text-[#78a9ff]">Memory (MB)</th>
+                    <th className="px-3 py-2.5 font-semibold text-[#78a9ff]">Static Priority</th>
+                  </>
+                )}
+                <th className="px-3 py-2.5 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#393939] bg-[#1e1e1e]">
               {processes.map((p, idx) => (
                 <tr key={idx} className="hover:bg-[#262626] transition-colors">
-                  <td className="px-4 py-2">
+                  <td className="px-3 py-2">
                     <input
                       type="text"
                       value={p.pid}
                       onChange={(e) => handleChange(idx, 'pid', e.target.value)}
-                      className="bg-[#161616] border border-[#525252] px-2.5 py-1 text-white font-mono text-xs w-28 focus:outline-none focus:border-[#0f62fe]"
+                      className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-24 focus:outline-none focus:border-[#0f62fe]"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-3 py-2">
                     <input
                       type="number"
                       min="0"
                       value={p.arrival_time}
                       onChange={(e) => handleChange(idx, 'arrival_time', e.target.value)}
-                      className="bg-[#161616] border border-[#525252] px-2.5 py-1 text-white font-mono text-xs w-28 focus:outline-none focus:border-[#0f62fe]"
+                      className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-20 focus:outline-none focus:border-[#0f62fe]"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-3 py-2">
                     <input
                       type="number"
                       min="1"
                       value={p.burst_time}
                       onChange={(e) => handleChange(idx, 'burst_time', e.target.value)}
-                      className="bg-[#161616] border border-[#525252] px-2.5 py-1 text-white font-mono text-xs w-28 focus:outline-none focus:border-[#0f62fe]"
+                      className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-20 focus:outline-none focus:border-[#0f62fe]"
                     />
                   </td>
                   {algorithm === 'PRIORITY' && (
-                    <td className="px-4 py-2">
+                    <td className="px-3 py-2">
                       <input
                         type="number"
                         min="0"
                         value={p.priority}
                         onChange={(e) => handleChange(idx, 'priority', e.target.value)}
-                        className="bg-[#161616] border border-[#525252] px-2.5 py-1 text-white font-mono text-xs w-28 focus:outline-none focus:border-[#0f62fe]"
+                        className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-20 focus:outline-none focus:border-[#0f62fe]"
                       />
                     </td>
                   )}
-                  <td className="px-4 py-2 text-right">
+                  {(algorithm === 'ADAPTIVE_ROUTER' || algorithm === 'PREDICTED_SJF') && (
+                    <>
+                      <td className="px-3 py-2">
+                        <select
+                          value={p.process_type || 'batch'}
+                          onChange={(e) => handleChange(idx, 'process_type', e.target.value)}
+                          className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-28 focus:outline-none focus:border-[#0f62fe]"
+                        >
+                          <option value="interactive">Interactive</option>
+                          <option value="bursty">Bursty</option>
+                          <option value="batch">Batch</option>
+                        </select>
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number"
+                          min="16"
+                          value={p.requested_memory_mb || 512}
+                          onChange={(e) => handleChange(idx, 'requested_memory_mb', e.target.value)}
+                          className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-20 focus:outline-none focus:border-[#0f62fe]"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="19"
+                          value={p.static_priority ?? 5}
+                          onChange={(e) => handleChange(idx, 'static_priority', e.target.value)}
+                          className="bg-[#161616] border border-[#525252] px-2 py-1 text-white font-mono text-xs w-20 focus:outline-none focus:border-[#0f62fe]"
+                        />
+                      </td>
+                    </>
+                  )}
+                  <td className="px-3 py-2 text-right">
                     <button
                       onClick={() => handleRemoveProcess(idx)}
                       disabled={processes.length <= 1}
@@ -421,7 +466,7 @@ export default function CPUSchedulingPage({ processes, setProcesses, result, set
                   }`}
                 >
                   <span className="text-xs font-mono font-bold">
-                    {block.fallback_mode ? '🛡️ ' : ''}{block.pid}
+                    {block.fallback_mode ? '[FB] ' : ''}{block.pid}
                   </span>
                   <span className="text-[11px] font-mono text-[#8d8d8d] mt-1.5">
                     {block.start_time} - {block.end_time}
@@ -754,7 +799,7 @@ export default function CPUSchedulingPage({ processes, setProcesses, result, set
                           }`}
                         >
                           <span className="text-[11px] font-mono font-bold">
-                            {block.fallback_mode ? '🛡️ ' : ''}{block.pid}
+                            {block.fallback_mode ? '[FB] ' : ''}{block.pid}
                           </span>
                           <span className="text-[10px] font-mono text-[#8d8d8d] mt-1">
                             {block.start_time} - {block.end_time}

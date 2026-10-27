@@ -206,43 +206,43 @@ import random
 
 def enrich_process_features(p: Process) -> Process:
     """
-    Enriches process with realistic OS telemetry and historical burst execution metrics
-    matching the ML training distribution if default/unspecified.
+    Enriches process with ML features for burst prediction.
+    
+    Option A: Respects user-provided telemetry (process_type, requested_memory_mb,
+    static_priority) and only synthesizes values that are still at Pydantic model defaults.
+    Historical burst features are always derived from actual burst_time since those
+    represent OS-level execution history that users cannot directly observe.
     """
-    is_default = (
-        p.process_type == "batch" and
-        p.requested_memory_mb == 1024 and
-        p.historical_burst_avg == 10.0 and
-        p.past_burst_1 == 10.0
-    )
-    if is_default:
-        bt = p.burst_time
-        # Deterministic seed based on PID and burst_time for reproducible predictions
-        seed = sum(ord(c) for c in str(p.pid)) + bt * 17
-        rng = random.Random(seed)
-        
+    bt = p.burst_time
+    seed = sum(ord(c) for c in str(p.pid)) + bt * 17
+    rng = random.Random(seed)
+
+    # Only synthesize process_type if user left it at the model default
+    if p.process_type == "batch" and p.requested_memory_mb == 1024:
+        # Both at defaults -> user didn't provide either, synthesize from burst
         if bt <= 4:
             p.process_type = "interactive"
             p.requested_memory_mb = rng.choice([64, 128, 256])
-            p.static_priority = p.priority if p.priority else rng.randint(0, 5)
         elif bt <= 13:
             p.process_type = "bursty"
             p.requested_memory_mb = rng.choice([256, 512])
-            p.static_priority = p.priority if p.priority else rng.randint(5, 10)
         else:
-            p.process_type = "batch"
             p.requested_memory_mb = rng.choice([1024, 2048, 4096])
-            p.static_priority = p.priority if p.priority else rng.randint(10, 19)
 
-        # Realistic autoregressive past execution times (within ~8% variance)
-        noise = lambda x: max(1, int(round(x * rng.uniform(0.92, 1.08))))
-        b1 = noise(bt)
-        b2 = noise(b1)
-        b3 = noise(b2)
-        p.past_burst_1 = float(b1)
-        p.past_burst_2 = float(b2)
-        p.past_burst_3 = float(b3)
-        p.historical_burst_avg = round((b1 + b2 + b3) / 3.0, 1)
+    # Only synthesize static_priority if user left it at the model default
+    if p.static_priority == 0:
+        p.static_priority = p.priority if p.priority else rng.randint(0, 10)
+
+    # Historical burst features are always derived from burst_time
+    # (these represent OS execution history, not user-observable telemetry)
+    noise = lambda x: max(1, int(round(x * rng.uniform(0.92, 1.08))))
+    b1 = noise(bt)
+    b2 = noise(b1)
+    b3 = noise(b2)
+    p.past_burst_1 = float(b1)
+    p.past_burst_2 = float(b2)
+    p.past_burst_3 = float(b3)
+    p.historical_burst_avg = round((b1 + b2 + b3) / 3.0, 1)
 
     return p
 

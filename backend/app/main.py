@@ -8,10 +8,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for local React development server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,6 +30,7 @@ app.include_router(disk_router.router)
 def root():
     return {"message": "OS Resource Simulator API is running"}
 
+@app.get("/health")
 @app.get("/api/health")
 def health():
     return {"status": "online"}

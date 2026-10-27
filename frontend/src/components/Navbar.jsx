@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Cpu, HardDrive, ShieldAlert, Terminal } from 'lucide-react';
+import { LayoutDashboard, Cpu, ShieldAlert, HardDrive, Terminal } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab }) {
   const navItems = [

@@ -10,9 +10,9 @@ export default function App() {
   
   // Lifted CPU Scheduling state
   const [cpuProcesses, setCpuProcesses] = useState([
-    { pid: 'P1', arrival_time: 0, burst_time: 5, priority: 1 },
-    { pid: 'P2', arrival_time: 1, burst_time: 3, priority: 2 },
-    { pid: 'P3', arrival_time: 2, burst_time: 8, priority: 3 },
+    { pid: 'P1', arrival_time: 0, burst_time: 5, priority: 1, process_type: 'bursty', requested_memory_mb: 256, static_priority: 4 },
+    { pid: 'P2', arrival_time: 1, burst_time: 3, priority: 2, process_type: 'interactive', requested_memory_mb: 128, static_priority: 2 },
+    { pid: 'P3', arrival_time: 2, burst_time: 8, priority: 3, process_type: 'batch', requested_memory_mb: 1024, static_priority: 10 },
   ]);
   const [cpuResult, setCpuResult] = useState(null);
   const [cpuAlgorithm, setCpuAlgorithm] = useState('FCFS');

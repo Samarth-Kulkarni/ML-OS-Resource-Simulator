@@ -320,7 +320,7 @@ export default function DeadlockPage({
                   <p className="text-xs font-mono text-[#c6c6c6] mt-1">
                     Safe Execution Sequence:{' '}
                     <span className="text-[#42be65] font-semibold">
-                      {result.safe_sequence.join(' ➔ ')}
+                      {result.safe_sequence.join(' -> ')}
                     </span>
                   </p>
                 )}

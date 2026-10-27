@@ -1,4 +1,4 @@
-# 🖥️ ML-Augmented OS Resource Management Simulator
+# ML-Augmented OS Resource Management Simulator
 
 An interactive, full-stack Operating System Resource Management Simulator featuring an integrated Executive Telemetry Dashboard, classical and ML-augmented CPU Scheduling, Deadlock Avoidance via Dijkstra's Banker's Algorithm, Disk Head Kinematics, and an **Adaptive Policy Router with Machine Learning Burst Prediction & Two-Tier Circuit Breakers**.
 
@@ -6,9 +6,9 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-## 🌟 Key Subsystems & Features
+## Key Subsystems & Features
 
-### 1. 📊 Executive Telemetry Dashboard
+### 1. Executive Telemetry Dashboard
 * **Dynamic Subsystem Health:** Live monitoring across CPU workloads, Banker's safety state, and active disk cylinders.
 * **Synchronized Process Tracker:** Centrally positioned **Process State Tracking Table** (above simulation modules) that reflects processes configured and executed across the kernel.
 * **Dynamic Disk Kinematics:** Live head position tracker dynamically synchronizing with active disk seek simulations and displaying total seek distance.
@@ -16,7 +16,7 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-### 2. ⚡ CPU Scheduling Engine & ML Adaptive Router
+### 2. CPU Scheduling Engine & ML Adaptive Router
 * **Comprehensive Scheduling Policies:**
   * **FCFS** (First-Come, First-Served)
   * **SJF** (Shortest Job First - Non-Preemptive)
@@ -39,29 +39,29 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-### 3. 🛡️ Deadlock Avoidance (Banker's Algorithm)
+### 3. Deadlock Avoidance (Banker's Algorithm)
 * **Deterministic Kernel Safety Invariant:** Configurable Allocation ($C$), Maximum Demand ($M$), and Available ($W$) vector matrices.
 * **Need Matrix Calculation:** Real-time computation of remaining resource requirements ($\text{Need} = \text{Max} - \text{Allocation}$).
 * **Safe Sequence Generation:** Step-by-step trace generation determining deadlock-free execution sequences ($\forall i, \text{Need}[i] \le \text{Work}$) or flagging unsafe states.
 
 ---
 
-### 4. 💾 Disk Arm Scheduling & Kinematics
+### 4. Disk Arm Scheduling & Kinematics
 * **Algorithms Implemented:** FCFS, SSTF, SCAN (Elevator), and C-SCAN (Circular SCAN).
 * **Kinematic Metrics:** Calculates total cylinder head movement, seek distance, and average seek latency per request.
 * **Service Traversal Sequence:** Visual chronological sequence of cylinder track visits with dynamic head position tracking.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### **Backend**
+### Backend
 * **Language & Framework:** Python 3.10+ / FastAPI
 * **ASGI Server:** Uvicorn
 * **Data Validation:** Pydantic v2
 * **Machine Learning:** Scikit-learn, Pandas, NumPy, Joblib
 
-### **Frontend**
+### Frontend
 * **Framework:** React 18 + Vite
 * **Styling & Design System:** Tailwind CSS + IBM Carbon Design System Tokens
 * **Typography:** IBM Plex Sans (interface) + IBM Plex Mono (telemetry/numbers)
@@ -70,7 +70,7 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 os-resource-simulator/
@@ -107,11 +107,11 @@ os-resource-simulator/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Run the backend and frontend in separate terminals:
 
-### **1. Backend (FastAPI)**
+### 1. Backend (FastAPI)
 ```bash
 # Navigate to the backend directory
 cd backend
@@ -128,7 +128,7 @@ python -m uvicorn app.main:app --reload --port 8000
 
 ---
 
-### **2. Frontend (React + Vite)**
+### 2. Frontend (React + Vite)
 ```bash
 # Navigate to the frontend directory
 cd frontend
