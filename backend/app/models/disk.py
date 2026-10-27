@@ -17,3 +17,16 @@ class DiskScheduleResponse(BaseModel):
     sequence: List[int] = Field(..., description="Order of tracks serviced starting from initial head")
     total_seek_time: int = Field(..., description="Total track distance traveled by head")
     movements: List[HeadMovement] = Field(..., description="Detailed step-by-step head movements")
+
+class DiskAlgorithmComparisonItem(BaseModel):
+    algorithm: str = Field(..., description="Algorithm name (FCFS, SSTF, SCAN, C-SCAN)")
+    sequence: List[int] = Field(..., description="Servicing sequence")
+    total_seek_time: int = Field(..., description="Total seek distance in cylinders")
+    movements: List[HeadMovement] = Field(..., description="Step movements")
+    improvement_vs_fcfs_pct: float = Field(..., description="Percentage seek distance reduction relative to FCFS")
+
+class DiskComparisonResponse(BaseModel):
+    results: List[DiskAlgorithmComparisonItem] = Field(..., description="Metrics for all 4 disk schedulers")
+    best_algorithm: str = Field(..., description="Algorithm with the lowest total seek distance")
+    max_seek: int
+    min_seek: int

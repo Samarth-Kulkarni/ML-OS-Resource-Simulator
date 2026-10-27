@@ -44,3 +44,11 @@ Thumbs.db
 *.swp
 *.swo
 .vscode/settings.json
+
+# Documents & Presentations (kept in workspace, not pushed to repo)
+docs/
+*.docx
+*.pptx
+*.pdf
+PROJECT_ACHIEVEMENTS.md
+project_description.md
