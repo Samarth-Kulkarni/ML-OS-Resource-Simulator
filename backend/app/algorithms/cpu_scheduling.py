@@ -3,10 +3,12 @@ from app.models.process import (
     Process, CPUScheduleResponse, GanttBlock, ProcessResult, FallbackLog,
     AlgorithmMetricSummary, CPUComparisonResponse, MLValidationMetrics
 )
-from app.ml.models import BurstPredictor
+from app.ml.models import (
+    BurstPredictor, MODEL_METADATA, get_multi_model_benchmark, get_model_benchmark_item
+)
 import os
 
-def run_cpu_scheduling(algorithm: str, processes: List[Process], time_quantum: int = 2, error_threshold: float = 5.0) -> CPUScheduleResponse:
+def run_cpu_scheduling(algorithm: str, processes: List[Process], time_quantum: int = 2, error_threshold: float = 5.0, model_type: str = "decision_tree") -> CPUScheduleResponse:
     alg = algorithm.upper()
     if alg == "FCFS":
         return _fcfs(processes)
@@ -17,9 +19,9 @@ def run_cpu_scheduling(algorithm: str, processes: List[Process], time_quantum: i
     elif alg == "PRIORITY":
         return _priority(processes)
     elif alg == "PREDICTED_SJF":
-        return _predicted_sjf(processes)
+        return _predicted_sjf(processes, model_type=model_type)
     elif alg == "ADAPTIVE_ROUTER":
-        return _adaptive_router(processes, time_quantum, error_threshold)
+        return _adaptive_router(processes, time_quantum, error_threshold, model_type=model_type)
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
@@ -246,15 +248,18 @@ def enrich_process_features(p: Process) -> Process:
 
     return p
 
-def _get_predictor():
-    predictor = BurstPredictor(model_type='decision_tree')
-    model_path = os.path.join(os.path.dirname(__file__), '..', 'ml', 'saved_models', 'decision_tree.pkl')
+def _get_predictor(model_type: str = 'decision_tree'):
+    m_type = (model_type or 'decision_tree').lower()
+    if m_type not in MODEL_METADATA:
+        m_type = 'decision_tree'
+    predictor = BurstPredictor(model_type=m_type)
+    model_path = os.path.join(os.path.dirname(__file__), '..', 'ml', 'saved_models', f'{m_type}.pkl')
     if os.path.exists(model_path):
         predictor.load(model_path)
-    return predictor
+    return predictor, m_type
 
-def _predicted_sjf(processes: List[Process]) -> CPUScheduleResponse:
-    predictor = _get_predictor()
+def _predicted_sjf(processes: List[Process], model_type: str = 'decision_tree') -> CPUScheduleResponse:
+    predictor, resolved_type = _get_predictor(model_type)
     for p in processes:
         enrich_process_features(p)
     predicted_bursts = {p.pid: float(predictor.predict(p)) for p in processes}
@@ -282,20 +287,28 @@ def _predicted_sjf(processes: List[Process]) -> CPUScheduleResponse:
         remaining_bt[chosen.pid] = 0
         completed += 1
         
+    item = get_model_benchmark_item(resolved_type)
     mae = sum(abs(p.burst_time - predicted_bursts[p.pid]) for p in processes) / n if n > 0 else 0.0
     return _calculate_metrics(
         gantt, 
         processes, 
         predicted_bursts=predicted_bursts,
         ml_metrics={
-            "model": "DecisionTreeRegressor",
+            "model": item.display_name,
+            "model_id": item.model_id,
+            "architecture": item.architecture,
+            "r2_score": item.r2_score,
+            "inference_latency_us": item.inference_latency_us,
+            "mae": item.mae,
+            "rmse": item.rmse,
+            "model_size_kb": item.model_size_kb,
             "final_ema_error": round(mae, 2),
             "fallback_triggers": 0
         }
     )
 
-def _adaptive_router(processes: List[Process], time_quantum: int, error_threshold: float) -> CPUScheduleResponse:
-    predictor = _get_predictor()
+def _adaptive_router(processes: List[Process], time_quantum: int, error_threshold: float, model_type: str = 'decision_tree') -> CPUScheduleResponse:
+    predictor, resolved_type = _get_predictor(model_type)
     for p in processes:
         enrich_process_features(p)
     predicted_bursts = {p.pid: float(predictor.predict(p)) for p in processes}
@@ -378,12 +391,20 @@ def _adaptive_router(processes: List[Process], time_quantum: int, error_threshol
             ))
             rr_queue.append(chosen)
             
+    item = get_model_benchmark_item(resolved_type)
     res = _calculate_metrics(
         gantt, 
         processes, 
         predicted_bursts=predicted_bursts, 
         ml_metrics={
-            "model": "DecisionTreeRegressor",
+            "model": item.display_name,
+            "model_id": item.model_id,
+            "architecture": item.architecture,
+            "r2_score": item.r2_score,
+            "inference_latency_us": item.inference_latency_us,
+            "mae": item.mae,
+            "rmse": item.rmse,
+            "model_size_kb": item.model_size_kb,
             "final_ema_error": round(ema_error, 2),
             "fallback_triggers": len(fallback_logs)
         }
@@ -392,7 +413,7 @@ def _adaptive_router(processes: List[Process], time_quantum: int, error_threshol
     return res
 
 
-def compare_cpu_algorithms(processes: List[Process], time_quantum: int = 2, error_threshold: float = 5.0) -> CPUComparisonResponse:
+def compare_cpu_algorithms(processes: List[Process], time_quantum: int = 2, error_threshold: float = 5.0, model_type: str = 'decision_tree') -> CPUComparisonResponse:
     if not processes:
         return CPUComparisonResponse(
             algorithms=[],
@@ -422,7 +443,7 @@ def compare_cpu_algorithms(processes: List[Process], time_quantum: int = 2, erro
     util_rr = round((tot_burst / rr_time * 100), 1) if rr_time > 0 else 0.0
 
     # 3. Predicted-SJF with Adaptive Circuit Breaker (ML-Augmented)
-    res_ml = _adaptive_router(clone_procs(), time_quantum, error_threshold)
+    res_ml = _adaptive_router(clone_procs(), time_quantum, error_threshold, model_type=model_type)
     ml_time = res_ml.gantt_chart[-1].end_time if res_ml.gantt_chart else 0
     util_ml = round((tot_burst / ml_time * 100), 1) if ml_time > 0 else 0.0
 
@@ -463,7 +484,7 @@ def compare_cpu_algorithms(processes: List[Process], time_quantum: int = 2, erro
         ),
         AlgorithmMetricSummary(
             algorithm_id="PREDICTED_SJF",
-            algorithm_name="Predicted-SJF (ML Augmented)",
+            algorithm_name=f"Predicted-SJF ({MODEL_METADATA.get(model_type, {}).get('display_name', 'ML Augmented')})",
             category="ml_augmented",
             avg_waiting_time=res_ml.average_waiting_time,
             avg_turnaround_time=res_ml.average_turnaround_time,
@@ -535,15 +556,16 @@ def compare_cpu_algorithms(processes: List[Process], time_quantum: int = 2, erro
     )
 
 
-def get_ml_validation_metrics() -> MLValidationMetrics:
+def get_ml_validation_metrics(model_type: str = "decision_tree") -> MLValidationMetrics:
+    item = get_model_benchmark_item(model_type)
     return MLValidationMetrics(
-        model_name="Decision Tree Regressor (Burst Estimator)",
-        model_architecture="DecisionTreeRegressor(max_depth=5, min_samples_leaf=10)",
+        model_name=item.display_name,
+        model_architecture=item.architecture,
         dataset_samples=500,
-        mean_absolute_error=1.19,
-        root_mean_squared_error=2.21,
-        r2_score=0.9564,
-        inference_latency_us=33.6,
+        mean_absolute_error=item.mae,
+        root_mean_squared_error=item.rmse,
+        r2_score=item.r2_score,
+        inference_latency_us=item.inference_latency_us,
         numeric_features=[
             "requested_memory_mb",
             "static_priority",

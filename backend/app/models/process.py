@@ -20,6 +20,7 @@ class CPUScheduleRequest(BaseModel):
     algorithm: str = Field(..., description="FCFS, SJF, SRTF, RR, PRIORITY, PREDICTED_SJF, ADAPTIVE_ROUTER")
     time_quantum: Optional[int] = Field(default=2, gt=0, description="Time quantum for Round Robin")
     error_threshold: Optional[float] = Field(default=5.0, description="Error threshold for Adaptive Router")
+    model_type: Optional[str] = Field(default="decision_tree", description="ML regressor architecture: decision_tree, random_forest, knn, ridge")
     processes: List[Process]
 
 class GanttBlock(BaseModel):
@@ -86,3 +87,22 @@ class MLValidationMetrics(BaseModel):
     inference_latency_us: float
     numeric_features: List[str]
     categorical_features: List[str]
+
+class MultiModelBenchmarkItem(BaseModel):
+    model_id: str
+    display_name: str
+    architecture: str
+    mae: float
+    rmse: float
+    r2_score: float
+    inference_latency_us: float
+    model_size_kb: float
+    kernel_suitability: str
+    description: str
+
+class MultiModelBenchmarkResponse(BaseModel):
+    models: List[MultiModelBenchmarkItem]
+    sample_count: int
+    best_accuracy_model: str
+    best_latency_model: str
+    recommended_for_kernel: str

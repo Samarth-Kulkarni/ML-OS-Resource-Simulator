@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { checkDeadlock } from '../services/api';
 import { Play, ShieldAlert, CheckCircle2, XCircle, Terminal } from 'lucide-react';
+import ResourceAllocationGraph from '../components/ResourceAllocationGraph';
+import ErrorBoundary from '../components/ErrorBoundary';
+
 
 export default function DeadlockPage({
   processes: propProcesses,
@@ -328,8 +331,23 @@ export default function DeadlockPage({
             </div>
           </div>
 
+          {/* Bipartite Resource Allocation Graph (RAG) */}
+          <ErrorBoundary title="Resource Allocation Graph">
+            <ResourceAllocationGraph
+              processes={processes}
+              resources={resources}
+              available={available}
+              allocationMatrix={allocationMatrix}
+              maxMatrix={maxMatrix}
+              needMatrix={result.need_matrix}
+              isSafe={result.is_safe}
+              safeSequence={result.safe_sequence}
+            />
+          </ErrorBoundary>
+
           {/* Need Matrix Calculated */}
           <div className="bg-[#262626] border border-[#393939]">
+
             <div className="p-4 border-b border-[#393939]">
               <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
                 Calculated Need Matrix (Max - Allocation)

@@ -16,7 +16,7 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-### 2. CPU Scheduling Engine & ML Adaptive Router
+### 2. CPU Scheduling Engine, SMP Multi-Core & ML Adaptive Router
 * **Comprehensive Scheduling Policies:**
   * **FCFS** (First-Come, First-Served)
   * **SJF** (Shortest Job First - Non-Preemptive)
@@ -24,9 +24,15 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
   * **Round Robin (RR)** with configurable time quantum
   * **Priority Scheduling** (Preemptive)
   * **Predicted-SJF / Adaptive Router** (ML-Driven with Fallback)
-* **ML-Augmented SJF (Decision Tree Regressor):**
-  * Employs an offline-trained, highly interpretable `DecisionTreeRegressor` delivering inference in **$33.6\text{ }\mu\text{s}$** average latency—well within real-time OS scheduling budgets.
-  * **Leakage-Safe Feature Engineering:** Operates strictly on pre-submission telemetry (memory allocation bands, cgroup QoS classes, process priorities, and autoregressive execution burst history).
+* **Multi-Core Symmetric Multiprocessing (SMP):**
+  * Support for 2-core and 4-core physical layouts with parallel execution timelines.
+  * Three architectural paradigms: **Dynamic Work-Stealing (SJF)**, **Static Core Affinity (Partitioned)**, and **Global Shared Round-Robin**.
+  * Strict hardware mutual exclusion invariant ($\sum_{c=1}^M \mathbb{I}(P_i \text{ on core } c \text{ at tick } t) \le 1$), guaranteeing zero cross-core collision and bounded utilization.
+* **Interactive CPU Clock Simulation Stepper:**
+  * Controllable virtual hardware clock (Play, Pause, Step-Forward, Step-Backward, Speed slider) visualizing live transitions across `Job Pool -> Ready -> Running -> Terminated / Demoted`.
+* **Multi-Model ML Architecture Benchmark Suite:**
+  * Empirically compares **Decision Tree Regressor ($d=5$)**, **Random Forest ($K=50$)**, **Ridge Regression ($L_2$)**, and **Linear Regression**.
+  * Ultra-low warm inference latency of **$5.37\,\mu\text{s}$**, fully compliant with the $< 50\,\mu\text{s}$ operating system dispatch deadline.
 * **Two-Tier Adaptive Policy Router (Safety Fallbacks):**
   * **Tier 1 (Per-Process Slice Protection):** If a process runs out of its ML-allocated execution slice, it is immediately demoted to the Round Robin queue to prevent starvation.
   * **Tier 2 (Global EMA Circuit Breaker):** Continuously tracks prediction error ($\text{Error} = |\text{Actual} - \text{Predicted}|$) via Exponential Moving Average:
@@ -39,17 +45,31 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-### 3. Deadlock Avoidance (Banker's Algorithm)
+### 3. Deadlock Avoidance (Banker's Algorithm & Interactive RAG)
 * **Deterministic Kernel Safety Invariant:** Configurable Allocation ($C$), Maximum Demand ($M$), and Available ($W$) vector matrices.
 * **Need Matrix Calculation:** Real-time computation of remaining resource requirements ($\text{Need} = \text{Max} - \text{Allocation}$).
 * **Safe Sequence Generation:** Step-by-step trace generation determining deadlock-free execution sequences ($\forall i, \text{Need}[i] \le \text{Work}$) or flagging unsafe states.
+* **Bipartite Resource Allocation Graph (RAG):** Interactive visual graph rendering processes, resource instance nodes, active allocation edges, pending claims, and dynamic circular-wait cycle highlighting in Carbon Alert Red.
 
 ---
 
-### 4. Disk Arm Scheduling & Kinematics
-* **Algorithms Implemented:** FCFS, SSTF, SCAN (Elevator), and C-SCAN (Circular SCAN).
-* **Kinematic Metrics:** Calculates total cylinder head movement, seek distance, and average seek latency per request.
-* **Service Traversal Sequence:** Visual chronological sequence of cylinder track visits with dynamic head position tracking.
+### 4. Disk Arm Scheduling & Kinematics (Future Scope / Prototype)
+* **Algorithms Implemented:** FCFS, SSTF, SCAN (Elevator), C-SCAN, LOOK, and ML-Augmented Shortest Access Time First (ML-SATF).
+* **2D Kinematic Canvas:** Interactive Cartesian traversal overlay comparing mechanical head wear and arm seek patterns across all algorithms.
+* **Kinematic Metrics:** Calculates total cylinder head movement, seek distance, and 7,200 RPM rotational position latency.
+* **Module Status:** Designated as future research scope with an in-progress status screen and developer preview toggle.
+
+---
+
+### 5. Synthetic Workload Generator & Technical Audit Report Exporter
+* **Workload Generator:** Generates mathematical process arrivals under Uniform, Exponential ($\lambda=0.1$), Pareto ($\alpha=1.5$), and Adversarial distributions.
+* **Report Exporter:** One-click automated export of comprehensive simulation audits in print-optimized HTML/PDF or Markdown.
+
+---
+
+## Documentation
+For complete mathematical derivations, architectural evolution, and research paper alignment, see:
+* [`COMPLETE_PROJECT_AND_UPDATES_GUIDE.md`](./COMPLETE_PROJECT_AND_UPDATES_GUIDE.md)
 
 ---
 

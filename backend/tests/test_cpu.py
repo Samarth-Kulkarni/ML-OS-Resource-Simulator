@@ -66,3 +66,55 @@ def test_ml_validation_metrics_endpoint():
     assert metrics.r2_score > 0.90
     assert metrics.mean_absolute_error < 2.0
     assert metrics.inference_latency_us < 50.0
+
+
+def test_multi_model_benchmark_and_model_types():
+    from app.ml.models import get_multi_model_benchmark
+    bench = get_multi_model_benchmark()
+    assert len(bench.models) == 4
+    model_ids = [m.model_id for m in bench.models]
+    assert "decision_tree" in model_ids
+    assert "random_forest" in model_ids
+    assert "knn" in model_ids
+    assert "ridge" in model_ids
+    assert bench.recommended_for_kernel == "decision_tree"
+
+    # Verify simulation runs with each model architecture
+    procs = [
+        Process(pid="P1", arrival_time=0, burst_time=5),
+        Process(pid="P2", arrival_time=1, burst_time=3)
+    ]
+    for m in ["decision_tree", "random_forest", "ridge", "knn"]:
+        res = run_cpu_scheduling("PREDICTED_SJF", procs, model_type=m)
+        assert len(res.gantt_chart) == 2
+        assert res.average_waiting_time >= 0.0
+
+
+def test_multicore_scheduling():
+    from app.models.multicore import MultiCoreScheduleRequest
+    from app.algorithms.multicore_scheduling import run_multicore_scheduling
+
+    procs = [
+        Process(pid="P1", arrival_time=0, burst_time=8),
+        Process(pid="P2", arrival_time=0, burst_time=6),
+        Process(pid="P3", arrival_time=1, burst_time=10),
+        Process(pid="P4", arrival_time=2, burst_time=4)
+    ]
+    # Single-core baseline sum of bursts = 28 ticks
+    req = MultiCoreScheduleRequest(
+        processes=procs,
+        core_count=2,
+        algorithm="WORK_STEALING"
+    )
+    res = run_multicore_scheduling(req)
+    assert res.core_count == 2
+    assert res.single_core_makespan == 28
+    # 2 cores must complete in significantly fewer ticks than single core
+    assert res.makespan < 28
+    assert res.speedup > 1.2
+    assert res.parallel_efficiency_pct > 50.0
+    assert len(res.core_telemetry) == 2
+    assert "core_0" in res.core_gantts
+    assert "core_1" in res.core_gantts
+
+

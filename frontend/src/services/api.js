@@ -12,13 +12,23 @@ export const simulateCPU = async (payload) => {
   return response.data;
 };
 
+export const simulateMultiCore = async (payload) => {
+  const response = await API.post('/cpu/multicore/simulate', payload);
+  return response.data;
+};
+
 export const compareCPU = async (payload) => {
   const response = await API.post('/cpu/compare', payload);
   return response.data;
 };
 
-export const getMLMetrics = async () => {
-  const response = await API.get('/cpu/ml-metrics');
+export const getMLMetrics = async (modelType = 'decision_tree') => {
+  const response = await API.get(`/cpu/ml-metrics?model_type=${modelType}`);
+  return response.data;
+};
+
+export const getMultiModelBenchmark = async () => {
+  const response = await API.get('/cpu/models-benchmark');
   return response.data;
 };
 
@@ -31,6 +41,12 @@ export const simulateDisk = async (payload) => {
   const response = await API.post('/disk/simulate', payload);
   return response.data;
 };
+
+export const compareDisk = async (payload) => {
+  const response = await API.post('/disk/compare', payload);
+  return response.data;
+};
+
 
 export const checkHealth = async () => {
   try {
