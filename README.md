@@ -67,12 +67,6 @@ Designed with the **IBM Carbon Design System** aesthetic (sharp 0px/2px geometry
 
 ---
 
-## Documentation
-For complete mathematical derivations, architectural evolution, and research paper alignment, see:
-* [`COMPLETE_PROJECT_AND_UPDATES_GUIDE.md`](./COMPLETE_PROJECT_AND_UPDATES_GUIDE.md)
-
----
-
 ## Tech Stack
 
 ### Backend

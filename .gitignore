@@ -45,10 +45,12 @@ Thumbs.db
 *.swo
 .vscode/settings.json
 
-# Documents & Presentations (kept in workspace, not pushed to repo)
+# Documents, Presentations & Markdown (kept in workspace, not pushed to repo)
 docs/
 *.docx
 *.pptx
 *.pdf
+*.md
+!README.md
 PROJECT_ACHIEVEMENTS.md
 project_description.md
